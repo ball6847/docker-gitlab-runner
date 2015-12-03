@@ -6,6 +6,7 @@ PREFIX=gitlab
 HTTP_PORT=10080
 SSH_PORT=10022
 SECRET_KEY=longAndRandomAlphaNumericString
+EXPOSE_HTTP_PORT=false
 
 # ------------------------------------------------------
 
@@ -21,8 +22,8 @@ fi
 # delete all existing container if any
 
 if [[ "`docker ps -aq --filter="name=$PREFIX-app"`" != "" ]]; then
-  echo "Removing existing $PREFIX container."
-  docker rm -f $PREFIX > /dev/null
+  echo "Removing existing $PREFIX-app container."
+  docker rm -f $PREFIX-app > /dev/null
 fi
 if [[ "`docker ps -aq --filter="name=$PREFIX-postgresql"`" != "" ]]; then
   echo "Removing existing $PREFIX-postgresql container."
@@ -53,20 +54,33 @@ docker run -d \
   sameersbn/redis:latest > /dev/null
 
 # gitlab
-echo "Starting $PREFIX."
-docker run -d \
-  --name $PREFIX-app \
-  --link $PREFIX-postgresql:postgresql \
-  --link $PREFIX-redis:redisio \
-  --publish $SSH_PORT:22 \
-  --publish $HTTP_PORT:80 \
-  --env "GITLAB_PORT=$HTTP_PORT" \
-  --env "GITLAB_SSH_PORT=$SSH_PORT" \
-  --env "GITLAB_SECRETS_DB_KEY_BASE=$SECRET_KEY" \
-  --volume $PWD/data/gitlab:/home/git/data \
-  sameersbn/gitlab:8.2.2 > /dev/null
+echo "Starting $PREFIX-app."
+
+if [[ "$EXPOSE_HTTP_PORT" = true ]]; then
+  EXPOSE_HTTP_PORT_CODE="--publish $HTTP_PORT:80 --env "GITLAB_PORT=$HTTP_PORT""
+fi
+
+GITLAB_CMD="docker run -d
+  --name $PREFIX-app
+  --link $PREFIX-postgresql:postgresql
+  --link $PREFIX-redis:redisio
+  --publish $SSH_PORT:22
+  $EXPOSE_HTTP_PORT_CODE
+  --env "GITLAB_SSH_PORT=$SSH_PORT"
+  --env "GITLAB_SECRETS_DB_KEY_BASE=$SECRET_KEY"
+  --volume $PWD/data/gitlab:/home/git/data
+  sameersbn/gitlab:8.2.2"
+
+$GITLAB_CMD > /dev/null
+
+# ------------------------------------------------------
 
 IP=`ip route get 1 | awk '{print $NF;exit}'`
 
-echo "-- Gitlab is now available at http://$IP:$HTTP_PORT/ and ssh on port $SSH_PORT."
-echo "-- For default user and password, please see at https://github.com/sameersbn/docker-gitlab#quick-start"
+if [[ "$EXPOSE_HTTP_PORT" = true ]]; then
+  echo "- Gitlab is now available at http://$IP:$HTTP_PORT/ and ssh on port $SSH_PORT."
+else
+  echo "- Gitlab is now available internally at http://$PREFIX-app:80/ and ssh on port $SSH_PORT."
+fi
+
+echo "- For default user and password, please see at https://github.com/sameersbn/docker-gitlab#quick-start"
