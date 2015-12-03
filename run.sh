@@ -91,6 +91,7 @@ GITLAB_CMD="
     --env "GITLAB_SSH_PORT=$SSH_PORT"
     --env "GITLAB_SECRETS_DB_KEY_BASE=$SECRET_KEY"
     --volume $PWD/data/gitlab:/home/git/data
+    $GITLAB_OPTIONS
     sameersbn/gitlab:8.2.2
 "
 
