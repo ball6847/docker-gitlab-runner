@@ -20,7 +20,7 @@ fi
 docker run -d \
   --name $PREFIX-postgresql \
   --env "DB_NAME=gitlabhq_production" \
-  --env "DB_USER=gitlab"
+  --env "DB_USER=gitlab" \
   --env "DB_PASS=password" \
   --volume $PWD/data/postgresql:/var/lib/postgresql \
   sameersbn/postgresql:9.4-8
