@@ -4,3 +4,4 @@
 !/data/postgresql/.gitkeep
 /data/redis/*
 !/data/redis/.gitkeep
+/config
