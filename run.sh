@@ -6,7 +6,7 @@ PREFIX=gitlab
 HTTP_PORT=10080
 SSH_PORT=10022
 SECRET_KEY=longAndRandomAlphaNumericString
-EXPOSE_HTTP_PORT=false
+EXPOSE_HTTP_PORT=true
 
 # ------------------------------------------------------
 
